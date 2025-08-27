@@ -44,8 +44,9 @@ func _ready() -> void:
 
   _grid = $Lobby/GridMap
   ExhibitFetcher.wikitext_complete.connect(_on_fetch_complete)
-  ExhibitFetcher.wikidata_complete.connect(_on_wikidata_complete)
-  ExhibitFetcher.commons_images_complete.connect(_on_commons_images_complete)
+  ExhibitFetcher.images_complete.connect(_on_commons_images_complete)
+#   ExhibitFetcher.wikidata_complete.connect(_on_wikidata_complete)
+#   ExhibitFetcher.commons_images_complete.connect(_on_commons_images_complete)
   GlobalMenuEvents.reset_custom_door.connect(_reset_custom_door)
   GlobalMenuEvents.set_custom_door.connect(_set_custom_door)
   GlobalMenuEvents.set_language.connect(_on_change_language)
@@ -323,6 +324,9 @@ func _erase_exhibit(key):
     _exhibit_hist.remove_at(i)
 
 func _on_fetch_complete(_titles, context):
+  print('ON FETCH COMPLETE MUSEUM')
+  print('TITLES!')
+  print(_titles)
   # we don't need to do anything to handle a prefetch
   if context.has("prefetch"):
     return
@@ -339,7 +343,10 @@ func _on_fetch_complete(_titles, context):
     prev_title = _backlink_map[context.title]
   else:
     prev_title = hall.from_title
-
+  print('ARGUMENTS TO ITEMPROCESSOR:')
+  print('TITLE: ' + context.title)
+  print('RESULT: ' + str(result.keys()))
+  print('PREV_TITLE: '+ prev_title)
   ItemProcessor.create_items(context.title, result, prev_title)
 
   var data
@@ -404,7 +411,11 @@ func _on_fetch_complete(_titles, context):
       "extra_text": extra_text
     }))
 
-  _queue_item_front(context.title, ExhibitFetcher.fetch_images.bind(image_titles, null))
+  image_titles = _titles
+  context.exhibit = new_exhibit
+  context.hall = hall
+  print('BIND FETCH IMAGES')
+  _queue_item_front(context.title, ExhibitFetcher.fetch_images.bind(image_titles, context))
   _queue_item(context.title, item_queue)
 
   if backlink:
@@ -444,7 +455,8 @@ func _on_wikidata_complete(entity, ctx):
 
 func _on_commons_images_complete(images, ctx):
   if len(images) > 0:
-    var item_data = ItemProcessor.commons_images_to_items(ctx.title, images, ctx.extra_text)
+    var item_data = ItemProcessor.commons_images_to_items(ctx.title, images, "")
+	# var item_data = ItemProcessor.commons_images_to_items(ctx.title, images, ctx.extra_text)
     for item in item_data:
       _queue_item(ctx.title, _add_item.bind(
         ctx.exhibit,
@@ -452,9 +464,11 @@ func _on_commons_images_complete(images, ctx):
       ))
   # for now we do not add all the remaining text if a commons category is present
   #_queue_extra_text(ctx.exhibit, ctx.extra_text)
+  _queue_extra_text(ctx.exhibit, "")
   _queue_item(ctx.title, _on_finished_exhibit.bind(ctx))
 
 func _on_finished_exhibit(ctx):
+  ctx.backlink = ctx.hall
   if not is_instance_valid(ctx.exhibit):
     return
   if OS.is_debug_build():

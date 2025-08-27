@@ -19,17 +19,21 @@ const WIKIDATA_PREFIX = "https://www.wikidata.org/wiki/"
 const WIKIDATA_COMMONS_CATEGORY = "P373"
 const WIKIDATA_COMMONS_GALLERY = "P935"
 
-var lang = TranslationServer.get_locale()
-var wikipedia_prefix = "https://" + lang + ".wikipedia.org/wiki/"
-var search_endpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&format=json&list=search&srprop=title&origin=*&srsearch="
-var random_endpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&format=json&generator=random&grnnamespace=0&prop=info&origin=*"
+var API_KEY = OS.get_environment("RAWG_API_KEY")
 
-var wikitext_endpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&prop=revisions|extracts|pageprops&ppprop=wikibase_item&explaintext=true&rvprop=content&format=json&redirects=1&origin=*&titles="
-var images_endpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&prop=imageinfo&iiprop=extmetadata|url&iiurlwidth=640&iiextmetadatafilter=LicenseShortName|Artist&format=json&redirects=1&origin=*&titles="
-var wikidata_endpoint = "https://www.wikidata.org/w/api.php?action=wbgetclaims&uselang=" + lang + "&format=json&origin=*&entity="
+var rawg_prefix = "https://api.rawg.io/api/games?key=" + API_KEY
+# var search_endpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&format=json&list=search&srprop=title&origin=*&srsearch="
+var search_endpoint = "https://api.rawg.io/api/games?key=" + API_KEY + "&search="
+var random_endpoint = "https://en.wikipedia.org/w/api.php?action=query&format=json&generator=random&grnnamespace=0&prop=info&origin=*"
 
-var wikimedia_commons_category_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=" + lang + "&generator=categorymembers&gcmtype=file&gcmlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&origin=*&gcmtitle="
-var wikimedia_commons_gallery_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=" + lang + "&generator=images&gimlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&origin=*&titles="
+var  gametext_endpoint_prefix = "https://api.rawg.io/api/games/"
+var  gametext_endpoint_suffix = "?key=" + API_KEY
+var images_endpoint_prefix = "https://api.rawg.io/api/games/"
+var images_endpoint_suffix = "/screenshots?key=" + API_KEY
+var wikidata_endpoint = "https://www.wikidata.org/w/api.php?action=wbgetclaims&uselang=en&format=json&origin=*&entity="
+
+var wikimedia_commons_category_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=en&generator=categorymembers&gcmtype=file&gcmlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&origin=*&gcmtitle="
+var wikimedia_commons_gallery_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=en&generator=images&gimlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&origin=*&titles="
 
 var _fs_lock = Mutex.new()
 var _results_lock = Mutex.new()
@@ -81,14 +85,19 @@ func _network_request_item():
       _dispatch_request(item[1], item[2], item[3])
 
 func set_language(language: String):
-  wikipedia_prefix = "https://" + language + ".wikipedia.org/wiki/"
-  search_endpoint = "https://" + language + ".wikipedia.org/w/api.php?action=query&format=json&list=search&srprop=title&srsearch="
-  random_endpoint = "https://" + language + ".wikipedia.org/w/api.php?action=query&format=json&generator=random&grnnamespace=0&prop=info"
-  wikitext_endpoint = "https://" + language + ".wikipedia.org/w/api.php?action=query&prop=revisions|extracts|pageprops&ppprop=wikibase_item&explaintext=true&rvprop=content&format=json&redirects=1&titles="
-  images_endpoint = "https://" + language + ".wikipedia.org/w/api.php?action=query&prop=imageinfo&iiprop=extmetadata|url&iiurlwidth=640&iiextmetadatafilter=LicenseShortName|Artist&format=json&redirects=1&titles="
-  wikidata_endpoint = "https://www.wikidata.org/w/api.php?action=wbgetclaims&uselang=" + language + "&format=json&entity="
-  wikimedia_commons_category_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=" + language + "&generator=categorymembers&gcmtype=file&gcmlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&gcmtitle="
-  wikimedia_commons_gallery_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=" + language + "&generator=images&gimlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&titles="
+  rawg_prefix = "https://api.rawg.io/api/games?key=" + API_KEY
+  # var search_endpoint = "https://" + lang + ".wikipedia.org/w/api.php?action=query&format=json&list=search&srprop=title&origin=*&srsearch="
+  search_endpoint = "https://api.rawg.io/api/games?key=" + API_KEY + "search="
+  random_endpoint = "https://en.wikipedia.org/w/api.php?action=query&format=json&generator=random&grnnamespace=0&prop=info&origin=*"
+
+  gametext_endpoint_prefix = "https://api.rawg.io/api/games/"
+  gametext_endpoint_suffix = "?key=" + API_KEY
+  images_endpoint_prefix = "https://api.rawg.io/api/games/"
+  images_endpoint_suffix = "/screenshots?key=" + API_KEY
+  wikidata_endpoint = "https://www.wikidata.org/w/api.php?action=wbgetclaims&uselang=en&format=json&origin=*&entity="
+
+  wikimedia_commons_category_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=en&generator=categorymembers&gcmtype=file&gcmlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&origin=*&gcmtitle="
+  wikimedia_commons_gallery_images_endpoint = "https://commons.wikimedia.org/w/api.php?action=query&uselang=en&generator=images&gimlimit=max&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&iiextmetadatafilter=Artist|LicenseShortName&format=json&origin=*&titles="
 
 func fetch(titles, ctx):
   # queue wikitext fetch in front of queue to improve next exhibit load time
@@ -101,6 +110,7 @@ func fetch_random(ctx):
   WorkQueue.add_item(NETWORK_QUEUE, ["fetch_random", ctx], null, true)
 
 func fetch_images(titles, ctx):
+  print('FETCH_IMAGES HAS BEEN CALLED')
   WorkQueue.add_item(NETWORK_QUEUE, ["fetch_images", titles, ctx])
 
 func fetch_wikidata(titles, ctx):
@@ -121,7 +131,7 @@ func _get_location_header(headers):
 func _join_titles(titles):
   return "|".join(titles.map(func(t): return t.uri_encode()))
 
-func _read_from_cache(title, prefix=wikipedia_prefix):
+func _read_from_cache(title, prefix=rawg_prefix):
   if Util.is_web():
     return null
   _fs_lock.lock()
@@ -133,7 +143,7 @@ func _read_from_cache(title, prefix=wikipedia_prefix):
     _results_lock.unlock()
   return json
 
-func _get_uncached_titles(titles, prefix = wikipedia_prefix):
+func _get_uncached_titles(titles, prefix = rawg_prefix):
   var new_titles = []
   for title in titles:
     if title == "":
@@ -145,17 +155,23 @@ func _get_uncached_titles(titles, prefix = wikipedia_prefix):
   return new_titles
 
 func _fetch_images(files, context):
-  var new_files = _get_uncached_titles(files)
+  print('_FETCH_IMAGES')
+  print(files)
+  # No caching!
+  var new_files = files
+  # var new_files = _get_uncached_titles(files)
 
-  if len(new_files) == 0:
-    call_deferred("emit_signal", "images_complete", files, context)
-    return
+  # if len(new_files) == 0:
+  #   call_deferred("emit_signal", "images_complete", files, context)
+  #   return
 
   if len(new_files) > MAX_BATCH_SIZE:
     fetch_images(new_files.slice(MAX_BATCH_SIZE), context)
     new_files = new_files.slice(0, MAX_BATCH_SIZE)
 
-  var url = images_endpoint + _join_titles(new_files)
+  var url = images_endpoint_prefix + _join_titles(new_files) + images_endpoint_suffix
+  print('IMAGES URL')
+  print(url)
   var ctx = {
     "files": files,
     "new_files": new_files,
@@ -225,7 +241,7 @@ func _fetch_wikitext(titles, context):
     push_error("Too many page requests at once")
     return
 
-  var url = wikitext_endpoint + _join_titles(new_titles)
+  var url = gametext_endpoint_prefix + titles[0] + gametext_endpoint_suffix
   var ctx = {
     "titles": titles,
     "new_titles": new_titles,
@@ -237,10 +253,6 @@ func _fetch_wikitext(titles, context):
 func get_result(title):
   var res = null
   _results_lock.lock()
-  print('GET RESULTS')
-  print(_results)
-  print('HAS TITLE?')
-  print(title)
   if _results.has(title):
     var result = _results[title]
     if result.has("normalized"):
@@ -251,6 +263,8 @@ func get_result(title):
     else:
       res = result
   _results_lock.unlock()
+  print('RES KEYS!')
+  print(res)
   return res
 
 func _dispatch_request(url, ctx, caller_ctx):
@@ -266,6 +280,7 @@ func _dispatch_request(url, ctx, caller_ctx):
   if Util.is_web():
     RequestSync.request_async(url).completed.connect(handle_result)
   else:
+    print('HANDLE RESULT CALL')
     handle_result.call(RequestSync.request(url))
 
 func _set_page_field(title, field, value):
@@ -307,47 +322,58 @@ func _on_request_completed_wrapper(result, response_code, headers, body, ctx, ca
     _delayed_advance_queue()
 
 func _on_request_completed(result, response_code, headers, body, ctx, caller_ctx):
+  print('ON REQUEST COMPLETED')
   if result != 0 or response_code != 200:
     if response_code != 404:
+      print('FAILED 1!')
       push_error("error in request ", result, " ", response_code, " ", ctx.url)
-    if ctx.url.begins_with(wikitext_endpoint):
+    if ctx.url.begins_with(gametext_endpoint_prefix):
+      print('FAILED 2!')
       call_deferred("emit_signal", "wikitext_failed", ctx.new_titles, str(response_code))
     return true
 
   var res = _get_json(body)
 
-  if res.has("query"):
-    var query = res.query
+  if res.has("results"):
+    var query = res.results
 
     # handle the canonical names
-    if query.has("normalized"):
-      var normalized = query.normalized
-      for title in normalized:
-        _set_page_field(title.from, "normalized", title.to)
+    # if query.has("normalized"):
+    #   var normalized = query.normalized
+    #   for title in normalized:
+    #     _set_page_field(title.from, "normalized", title.to)
 
-    if query.has("redirects"):
-      var redirects = query.redirects
-      for title in redirects:
-        _set_page_field(title.from, "normalized", title.to)
+    # if query.has("redirects"):
+    #   var redirects = query.redirects
+    #   for title in redirects:
+    #     _set_page_field(title.from, "normalized", title.to)
 
   # wikipedia request must have "query" object.
   # wikidata does not need to have it
-  elif not ctx.url.begins_with(wikidata_endpoint):
-    return true
-
-  if ctx.url.begins_with(wikitext_endpoint):
-    return _on_wikitext_request_complete(res, ctx, caller_ctx)
-  elif ctx.url.begins_with(images_endpoint):
+  # elif not ctx.url.begins_with(wikidata_endpoint):
+  #   return true
+  print('URL CHECK!')
+  print(ctx.url)
+  if ctx.url.ends_with(images_endpoint_suffix):
+    print('_on_images_request_complete')
     return _on_images_request_complete(res, ctx, caller_ctx)
+  elif ctx.url.begins_with(gametext_endpoint_prefix):
+    print('_on_wikitext_request_complete')
+    return _on_wikitext_request_complete(res, ctx, caller_ctx)
   elif ctx.url.begins_with(wikidata_endpoint):
+    print('_on_wikidata_request_complete')
     return _on_wikidata_request_complete(res, ctx, caller_ctx)
   elif ctx.url.begins_with(wikimedia_commons_category_images_endpoint):
+    print('_on_commons_images_request_complete')
     return _on_commons_images_request_complete(res, ctx, caller_ctx)
   elif ctx.url.begins_with(wikimedia_commons_gallery_images_endpoint):
+    print('_on_commons_images_request_complete')
     return _on_commons_images_request_complete(res, ctx, caller_ctx)
   elif ctx.url.begins_with(search_endpoint):
+    print('_on_search_request_complete')
     return _on_search_request_complete(res, ctx, caller_ctx)
   elif ctx.url.begins_with(random_endpoint):
+    print('_on_random_request_complete')
     return _on_random_request_complete(res, ctx, caller_ctx)
 
 func _dispatch_continue(continue_fields, base_url, titles, ctx, caller_ctx):
@@ -364,7 +390,7 @@ func _dispatch_continue(continue_fields, base_url, titles, ctx, caller_ctx):
   _fetch_continue(continue_url, ctx, caller_ctx, ctx.queue)
   return false
 
-func _cache_all(titles, prefix = wikipedia_prefix):
+func _cache_all(titles, prefix = rawg_prefix):
   for title in titles:
     var result = get_result(title)
     if result != null:
@@ -385,68 +411,70 @@ func _get_original_title(query, title):
 
 func _on_wikitext_request_complete(res, ctx, caller_ctx):
   # store the information we did get
-  if res.query.has("pages"):
-    var pages = res.query.pages
-    for page_id in pages.keys():
-      var page = pages[page_id]
+  print("Has description?")
+  if res.has("description"):
+    print("Has description!")
+    _set_page_field(res.slug, "extract", res.description)
+    _set_page_field(res.slug, "wikitext", "")
+  # if res.has("pages"):
+  #   var pages = res.pages
+  #   for page_id in pages.keys():
+  #     var page = pages[page_id]
 
-      # emit failed signal for a missing page
-      if page.has("missing"):
-        var original_title = _get_original_title(res.query, page.title)
-        call_deferred("emit_signal", "wikitext_failed", [original_title], "Missing")
-        ctx.new_titles.erase(original_title)
-        ctx.titles.erase(original_title)
-        continue
+  #     # emit failed signal for a missing page
+  #     if page.has("missing"):
+  #       var original_title = _get_original_title(res, page.title)
+  #       call_deferred("emit_signal", "wikitext_failed", [original_title], "Missing")
+  #       ctx.new_titles.erase(original_title)
+  #       ctx.titles.erase(original_title)
+  #       continue
 
-      if page.has("revisions"):
-        var revisions = page.revisions
-        _set_page_field(page.title, "wikitext", revisions[0]["*"])
-      if page.has("extract"):
-        _set_page_field(page.title, "extract", page.extract)
-      if page.has("pageprops") and page.pageprops.has("wikibase_item"):
-        var item = page.pageprops.wikibase_item
-        _set_page_field(page.title, "wikidata_entity", item)
+  #     if page.has("revisions"):
+  #       var revisions = page.revisions
+  #       _set_page_field(page.title, "wikitext", revisions[0]["*"])
+  #     if page.has("extract"):
+  #       _set_page_field(page.title, "extract", page.extract)
+  #     if page.has("pageprops") and page.pageprops.has("wikibase_item"):
+  #       var item = page.pageprops.wikibase_item
+  #       _set_page_field(page.title, "wikidata_entity", item)
 
   # handle continues
-  if res.has("continue"):
-    return _dispatch_continue(res.continue, wikitext_endpoint, ctx.new_titles, ctx, caller_ctx)
-  else:
-    _cache_all(ctx.new_titles)
-    call_deferred("emit_signal", "wikitext_complete", ctx.titles, caller_ctx)
-    # wikitext ignores queue, so return false to prevent queue advance after completion
-    return false
+  # if res.has("continue"):
+  #   return _dispatch_continue(res.continue, gametext_endpoint_prefix, ctx.new_titles, ctx, caller_ctx)
+  # else:
+  _cache_all(ctx.new_titles)
+  call_deferred("emit_signal", "wikitext_complete", ctx.titles, caller_ctx)
+  # wikitext ignores queue, so return false to prevent queue advance after completion
+  print("Wikitext OVER!")
+  return false
 
 func _on_images_request_complete(res, ctx, caller_ctx):
   # store the information we did get
+  print('ON IMAGES REQUEST COMPLETE')
+  print(res)
   var file_batch = []
 
-  if res.query.has("pages"):
-    var pages = res.query.pages
-    for page_id in pages.keys():
-      var page = pages[page_id]
-      var file = page.title
-      if not page.has("imageinfo"):
-        continue
-      file_batch.append(_get_original_title(res.query, file))
-      for info in page.imageinfo:
-        if info.has("extmetadata"):
-          var md = info.extmetadata
-          if md.has("LicenseShortName"):
-            _set_page_field(file, "license_short_name", md.LicenseShortName.value)
-          if md.has("Artist"):
-            _set_page_field(file, "artist", md.Artist.value)
-        if info.has("thumburl"):
-          _set_page_field(file, "src", info.thumburl)
-
+  if res.has("results"):
+    var results = res.results
+    for result in results:
+      if result.has("image"):
+        var file = "File:" + result.image.split('/')[-1]
+        file_batch.append(file)
+        _set_page_field(file, "license_short_name", "")
+        _set_page_field(file, "artist", "")
+        _set_page_field(file, "src", result.image)
+  print('FILE BATCH:')
+  print(file_batch)
   if len(file_batch) > 0:
+    print('SOME IMAGES HAVE BEEN FOUND!')
     _cache_all(file_batch)
     call_deferred("emit_signal", "images_complete", file_batch, caller_ctx)
 
   # handle continues
-  if res.has("continue"):
-    return _dispatch_continue(res.continue, images_endpoint, ctx.new_files, ctx, caller_ctx)
-  else:
-    return true
+  # if res.has("continue"):
+  #   return _dispatch_continue(res.continue, images_endpoint, ctx.new_files, ctx, caller_ctx)
+  # else:
+  return true
 
 func _on_commons_images_request_complete(res, ctx, caller_ctx):
   var file_batch = []
@@ -502,17 +530,18 @@ func _on_wikidata_request_complete(res, ctx, caller_ctx):
   return true
 
 func _on_search_request_complete(res, ctx, caller_ctx):
-  if res.query.has("search"):
-    if len(res.query.search) > 0:
-      var result_title = res.query.search[0].title
+  print('SEARCH REQUEST COMPLETE')
+  if res.has("results"):
+    if len(res.results) > 0:
+      var result_title = res.results[0].slug
       call_deferred("emit_signal", "search_complete", result_title, caller_ctx)
       return true
   call_deferred("emit_signal", "search_complete", null, caller_ctx)
   return true
 
 func _on_random_request_complete(res, ctx, caller_ctx):
-  if res.query.has("pages"):
-    var pages = res.query.pages
+  if res.has("pages"):
+    var pages = res.pages
     for page_id in pages.keys():
       var result_title = pages[page_id].title
       call_deferred("emit_signal", "random_complete", result_title, caller_ctx)

@@ -61,8 +61,6 @@ func _process(delta: float):
 
 func _network_request_item():
     var item = WorkQueue.process_queue(NETWORK_QUEUE)
-    print("ITEM IN QUEUE")
-    print(item)
     if not item:
       return
     elif item[0] == "fetch_wikitext":
@@ -145,6 +143,8 @@ func _get_uncached_titles(titles, prefix = wikipedia_prefix):
   return new_titles
 
 func _fetch_images(files, context):
+  print('FETCH IMAGES')
+  print(files)
   var new_files = _get_uncached_titles(files)
 
   if len(new_files) == 0:
@@ -237,10 +237,6 @@ func _fetch_wikitext(titles, context):
 func get_result(title):
   var res = null
   _results_lock.lock()
-  print('GET RESULTS')
-  print(_results)
-  print('HAS TITLE?')
-  print(title)
   if _results.has(title):
     var result = _results[title]
     if result.has("normalized"):
@@ -251,6 +247,8 @@ func get_result(title):
     else:
       res = result
   _results_lock.unlock()
+  print('RES KEYS!')
+  print(res)
   return res
 
 func _dispatch_request(url, ctx, caller_ctx):
@@ -436,8 +434,14 @@ func _on_images_request_complete(res, ctx, caller_ctx):
           if md.has("Artist"):
             _set_page_field(file, "artist", md.Artist.value)
         if info.has("thumburl"):
+          # print('file')
+          # print(file)
+          # print('THUMBURL!')
+          # print(info.thumburl)
+          # print('-------')
           _set_page_field(file, "src", info.thumburl)
-
+  # print('FILE BATCH')
+  # print(file_batch)
   if len(file_batch) > 0:
     _cache_all(file_batch)
     call_deferred("emit_signal", "images_complete", file_batch, caller_ctx)
@@ -450,12 +454,14 @@ func _on_images_request_complete(res, ctx, caller_ctx):
 
 func _on_commons_images_request_complete(res, ctx, caller_ctx):
   var file_batch = []
-
+  print('ON COMMONS IMAGES!')
   if res.query.has("pages"):
     var pages = res.query.pages
     for page_id in pages.keys():
       var page = pages[page_id]
       var file = page.title
+      print('FILE')
+      print(file)
       if not page.has("imageinfo"):
         continue
       for info in page.imageinfo:
@@ -466,10 +472,17 @@ func _on_commons_images_request_complete(res, ctx, caller_ctx):
           if md.has("Artist"):
             _set_page_field(file, "artist", md.Artist.value)
         if info.has("thumburl"):
+          print('file')
+          print(file)
+          print('THUMBURL!')
+          print(info.thumburl)
+          print('-------')
           _set_page_field(file, "src", info.thumburl)
         file_batch.append(file)
         _append_page_field(ctx.category, "images", [file])
 
+  print('FILE BATCH')
+  print(file_batch)
   if len(file_batch) > 0:
     _cache_all(file_batch, WIKIMEDIA_COMMONS_PREFIX)
     call_deferred("emit_signal", "commons_images_complete", file_batch, caller_ctx)

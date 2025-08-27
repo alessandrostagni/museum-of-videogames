@@ -51,6 +51,8 @@ func request(url, headers=COMMON_HEADERS, verbose=true):
     Util.delay_msec(DELAY_MS)
 
   var response_code = http_client.get_response_code()
+  print('Response code')
+  print(http_client.get_response_code())
   var response_headers = http_client.get_response_headers()
   return [OK, response_code, response_headers, response]
 
@@ -63,7 +65,7 @@ func request_async(url, headers=COMMON_HEADERS, verbose=true):
 
   if Util.is_web():
     # Headers don't always work from the web, let's just not send any.
-    headers = []
+    headers = ["Accept: application/json"]
 
   var resp = ResponseAsync.new()
 
